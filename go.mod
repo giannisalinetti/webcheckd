@@ -1,4 +1,4 @@
-module github.com/giannisalinetti/site-checker
+module github.com/giannisalinetti/webcheckd
 
 go 1.12
 

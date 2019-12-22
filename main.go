@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/smtp"
+	"os"
+	"os/signal"
 	"regexp"
+	"syscall"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -70,7 +73,7 @@ func siteChecker(url string) (bool, string) {
 	return r.MatchString(rsp.Status), rsp.Status
 }
 
-// healthCheck returns a status string for the site-checker service
+// healthCheck returns a status string for the webcheckd service
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Status OK.\n")
 }
@@ -90,6 +93,15 @@ func main() {
 	senderPassword := flag.String("password", "mypassword", "Sender password")
 	flag.Parse()
 
+	// Start a os.Signal channel to accept signals
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGKILL)
+	go func() {
+		<-sigs
+		log.Info("Shutting down webcheckd service\n")
+		os.Exit(0)
+	}()
+
 	// Start embedded web server for service health probes
 	go func() {
 		http.HandleFunc("/healthz", healthCheck)
@@ -107,8 +119,6 @@ func main() {
 
 			if ok {
 				log.Infof("%s is up. Status: %s\n", *siteUrl, status)
-				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-				mailSender(*senderAccount, *senderPassword, recipientsList, mailMessage)
 			} else {
 				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
@@ -119,4 +129,5 @@ func main() {
 	}()
 
 	log.Infof("Check loop for %s started.", *siteUrl)
+
 }

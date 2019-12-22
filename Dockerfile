@@ -7,7 +7,7 @@ ENV URL=https://www.paradewedding.com \
     TO=recipient@gmail.com
 
 # Define workdir
-WORKDIR /site-checker
+WORKDIR /webcheckd
 
 # Copy appliation files and dependencies
 COPY go.mod go.sum main.go ./
@@ -16,6 +16,7 @@ COPY go.mod go.sum main.go ./
 RUN go mod download && \
     go build
 
-RUN cp site-checker /usr/local/bin
+RUN mv webcheckd /usr/local/bin
 
-CMD site-checker -url $URL -from $FROM -password $PASSWORD -to $TO
+ENTRYPOINT ["sh", "-c", "/usr/local/bin/webcheckd"]
+CMD -url $URL -from $FROM -password $PASSWORD -to $TO

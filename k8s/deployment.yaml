@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: site-checker
+  name: webcheckd
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: site-checker
+      app: webcheckd
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -15,11 +15,11 @@ spec:
   template:
     metadata:
       labels:
-        app: site-checker
+        app: webcheckd
     spec:
       containers:
-      - name: site-checker
-        image: quay.io/gbsalinetti/site-checker:latest
+      - name: webcheckd
+        image: quay.io/gbsalinetti/webcheckd:latest
         imagePullPolicy: Always
         env:
           - name: URL
@@ -43,7 +43,7 @@ spec:
                 key: to
                 name: webcheckd-config
         command: 
-          - site-checker 
+          - webcheckd 
           - -url
           - $(URL)
           - -from
