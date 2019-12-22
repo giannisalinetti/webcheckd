@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site-checker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: site-checker
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: site-checker
+    spec:
+      containers:
+      - name: site-checker
+        image: quay.io/gbsalinetti/site-checker:latest
+        imagePullPolicy: Always
+        env:
+          - name: URL
+            valueFrom:
+              configMapKeyRef:
+                key: url
+                name: webcheckd-config
+          - name: FROM
+            valueFrom:
+              secretKeyRef:
+                key: from
+                name: webcheckd
+          - name: PASSWORD
+            valueFrom:
+              secretKeyRef:
+                key: password
+                name: webcheckd
+          - name: TO
+            valueFrom:
+              configMapKeyRef:
+                key: to
+                name: webcheckd-config
+        command: 
+          - site-checker 
+          - -url
+          - $(URL)
+          - -from
+          - $(FROM)
+          - -password
+          - $(PASSWORD)
+          - -to
+          - $(TO)
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: "/healthz"
+            port: 8080
+            scheme: HTTP
+        readinessProbe:
+          httpGet:
+            path: "/healthz"
+            port: 8080
+            scheme: HTTP
+      restartPolicy: Always
+              

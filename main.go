@@ -38,7 +38,6 @@ func (s *smtpServer) Address() string {
 	return s.host + ":" + s.port
 }
 
-
 // mailSender sends email notification messages in case of errors
 func mailSender(from string, password string, to []string, message []byte) {
 
@@ -79,10 +78,10 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 func main() {
 	// Set logrus custom formatter
 	customFormatter := new(log.TextFormatter)
-    customFormatter.TimestampFormat = "2006-01-02 15:04:05"
+	customFormatter.TimestampFormat = "2006-01-02 15:04:05"
 	log.SetFormatter(customFormatter)
 	customFormatter.FullTimestamp = true
-	
+
 	// Set commandline flags
 	var recipientsList sliceFlag
 	flag.Var(&recipientsList, "to", "Recipient e-mail")
@@ -109,6 +108,7 @@ func main() {
 			if ok {
 				log.Infof("%s is up. Status: %s\n", *siteUrl, status)
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
+				mailSender(*senderAccount, *senderPassword, recipientsList, mailMessage)
 			} else {
 				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")

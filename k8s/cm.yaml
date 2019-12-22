@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: webcheckd-config
+data:
+  to: gbsalinetti@gmail.com
+  url: https://www.paradewedding.com
