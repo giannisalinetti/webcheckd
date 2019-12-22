@@ -18,5 +18,9 @@ RUN go mod download && \
 
 RUN mv webcheckd /usr/local/bin
 
+EXPOSE 8080
+
+USER 1001
+
 ENTRYPOINT ["sh", "-c", "/usr/local/bin/webcheckd"]
 CMD -url $URL -from $FROM -password $PASSWORD -to $TO
