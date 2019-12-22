@@ -79,21 +79,26 @@ func main() {
 
 	flag.Parse()
 
-	for {
-		ok, status := siteChecker(*siteUrl)
+	defer func() {
+		for {
+			ok, status := siteChecker(*siteUrl)
 
-		mailMessage := []byte("Subject: Site status notification.\r\n" +
-			"\r\n" +
-			"This is an alert message for " + *siteUrl + ". Status is down with error " + status + "\r\n")
+			mailMessage := []byte("Subject: Site status notification.\r\n" +
+				"\r\n" +
+				"This is an alert message for " + *siteUrl + ". Status is down with error " + status + "\r\n")
 
-		if ok {
-			log.Infof("%s is up. Status: %s\n", *siteUrl, status)
-			//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-		} else {
-			log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
-			//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-			mailSender(*senderAccount, *senderPassword, recipientsList, mailMessage)
+			if ok {
+				log.Infof("%s is up. Status: %s\n", *siteUrl, status)
+				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
+			} else {
+				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
+				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
+				mailSender(*senderAccount, *senderPassword, recipientsList, mailMessage)
+			}
+			time.Sleep(300 * time.Second)
 		}
-		time.Sleep(300 * time.Second)
-	}
+	}()
+
+	log.Infof("Check loop for %s started.", *siteUrl)
+
 }
