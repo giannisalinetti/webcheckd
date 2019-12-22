@@ -42,9 +42,9 @@ func (s *smtpServer) Address() string {
 }
 
 // mailSender sends email notification messages in case of errors
-func mailSender(from string, password string, to []string, message []byte) {
+func mailSender(smtpHost string, smtpPort string, from string, password string, to []string, message []byte) {
 
-	smtpServerInstance := &smtpServer{host: "smtp.gmail.com", port: "587"}
+	smtpServerInstance := &smtpServer{host: smtpHost, port: smtpPort}
 
 	// Authentication
 	auth := smtp.PlainAuth("", from, password, smtpServerInstance.host)
@@ -91,6 +91,8 @@ func main() {
 	siteUrl := flag.String("url", "http://www.example.com", "Url name")
 	senderAccount := flag.String("from", "sender@gmail.com", "Sender account")
 	senderPassword := flag.String("password", "mypassword", "Sender password")
+	smtpHost := flag.String("host", "smtp.gmail.com", "SMTP Server")
+	smtpPort := flag.String("port", "587", "SMTP Port")
 	flag.Parse()
 
 	// Start a os.Signal channel to accept signals
@@ -113,16 +115,18 @@ func main() {
 		for {
 			ok, status := siteChecker(*siteUrl)
 
-			mailMessage := []byte("Subject: Site status notification.\r\n" +
+			mailMessage := []byte("Subject: Site alert notification.\r\n" +
 				"\r\n" +
-				"This is an alert message for " + *siteUrl + ". Status is down with error " + status + "\r\n")
+				"This is an alert message for " + *siteUrl +
+				".\nWebsite status is down with the following error: " + status +
+				".\nPlease take action immediately." + "\r\n")
 
 			if ok {
 				log.Infof("%s is up. Status: %s\n", *siteUrl, status)
 			} else {
 				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-				mailSender(*senderAccount, *senderPassword, recipientsList, mailMessage)
+				mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
 			}
 			time.Sleep(300 * time.Second)
 		}
