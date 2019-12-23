@@ -93,6 +93,7 @@ func main() {
 	senderPassword := flag.String("password", "mypassword", "Sender password")
 	smtpHost := flag.String("host", "smtp.gmail.com", "SMTP Server")
 	smtpPort := flag.String("port", "587", "SMTP Port")
+	intervalSecs := flag.Int64("interval", 300, "Interval in seconds")
 	flag.Parse()
 
 	// Start a os.Signal channel to accept signals
@@ -128,7 +129,7 @@ func main() {
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
 				mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
 			}
-			time.Sleep(300 * time.Second)
+			time.Sleep(time.Duration(*intervalSecs) * time.Second)
 		}
 	}()
 
