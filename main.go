@@ -42,7 +42,7 @@ func (s *smtpServer) Address() string {
 }
 
 // mailSender sends email notification messages in case of errors
-func mailSender(smtpHost string, smtpPort string, from string, password string, to []string, message []byte) {
+func mailSender(smtpHost string, smtpPort string, from string, password string, to []string, message []byte) error {
 
 	smtpServerInstance := &smtpServer{host: smtpHost, port: smtpPort}
 
@@ -52,11 +52,10 @@ func mailSender(smtpHost string, smtpPort string, from string, password string, 
 	// Sending email
 	err := smtp.SendMail(smtpServerInstance.Address(), auth, from, to, message)
 	if err != nil {
-		log.Errorf("Error sending email notification", err)
-		return
+		return err
 	}
 
-	log.Info("Notification e-mail sent.")
+	return nil
 }
 
 // siteChecker verifies the status of the site
@@ -127,7 +126,11 @@ func main() {
 			} else {
 				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
 				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-				mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
+				err := mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
+				if err != nil {
+					log.Errorf("Error sending email notification", err)
+				}
+				log.Info("Notification e-mail sent.")
 			}
 			time.Sleep(time.Duration(*intervalSecs) * time.Second)
 		}
