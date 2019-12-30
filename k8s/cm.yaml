@@ -3,5 +3,5 @@ kind: ConfigMap
 metadata:
   name: webcheckd-config
 data:
-  to: gbsalinetti@gmail.com
-  url: https://www.paradewedding.com
+  to: admin@mysite.com
+  url1: https://www.mysite.com

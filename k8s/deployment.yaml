@@ -22,21 +22,21 @@ spec:
         image: quay.io/gbsalinetti/webcheckd:latest
         imagePullPolicy: Always
         env:
-          - name: URL
+          - name: URL1
             valueFrom:
               configMapKeyRef:
-                key: url
+                key: url1
                 name: webcheckd-config
           - name: FROM
             valueFrom:
               secretKeyRef:
                 key: from
-                name: webcheckd
+                name: webcheckd-secret
           - name: PASSWORD
             valueFrom:
               secretKeyRef:
                 key: password
-                name: webcheckd
+                name: webcheckd-secret
           - name: TO
             valueFrom:
               configMapKeyRef:
@@ -45,7 +45,7 @@ spec:
         command: 
           - webcheckd 
           - -url
-          - $(URL)
+          - $(URL1)
           - -from
           - $(FROM)
           - -password
