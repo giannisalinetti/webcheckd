@@ -1,11 +1,6 @@
 FROM golang:latest
 LABEL maintainer="Giovan Battista Salinetti <gbsalinetti@gmail.com>"
 
-ENV URL=https://www.paradewedding.com \
-    FROM=sender@gmail.com \
-    PASSWORD=mypassword \
-    TO=recipient@gmail.com
-
 # Define workdir
 WORKDIR /webcheckd
 
@@ -22,5 +17,5 @@ EXPOSE 8080
 
 USER 1001
 
-ENTRYPOINT ["sh", "-c", "/usr/local/bin/webcheckd"]
-CMD -url $URL -from $FROM -password $PASSWORD -to $TO
+ENTRYPOINT ["/usr/local/bin/webcheckd"]
+CMD ["-h"]
