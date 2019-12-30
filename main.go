@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	"strings"
 	"syscall"
 	"time"
 
@@ -86,14 +87,19 @@ func main() {
 
 	// Set commandline flags
 	var recipientsList sliceFlag
+	var urlList sliceFlag
 	flag.Var(&recipientsList, "to", "Recipient e-mail")
-	siteUrl := flag.String("url", "http://www.example.com", "Url name")
+	flag.Var(&urlList, "url", "Url list")
 	senderAccount := flag.String("from", "sender@gmail.com", "Sender account")
 	senderPassword := flag.String("password", "mypassword", "Sender password")
 	smtpHost := flag.String("host", "smtp.gmail.com", "SMTP Server")
 	smtpPort := flag.String("port", "587", "SMTP Port")
 	intervalSecs := flag.Int64("interval", 300, "Interval in seconds")
 	flag.Parse()
+
+	if len(urlList) == 0 {
+		log.Fatal("URL list cannot be empty")
+	}
 
 	// Start a os.Signal channel to accept signals
 	sigs := make(chan os.Signal, 1)
@@ -113,29 +119,33 @@ func main() {
 	// Start a deferred closure for site check
 	defer func() {
 		for {
-			ok, status := siteChecker(*siteUrl)
+			// Loop over the full URL list
+			for _, siteUrl := range urlList {
 
-			mailMessage := []byte("Subject: Site alert notification.\r\n" +
-				"\r\n" +
-				"This is an alert message for " + *siteUrl +
-				".\nWebsite status is down with the following error: " + status +
-				".\nPlease take action immediately." + "\r\n")
+				ok, status := siteChecker(siteUrl)
 
-			if ok {
-				log.Infof("%s is up. Status: %s\n", *siteUrl, status)
-			} else {
-				log.Warnf("%s is down. Status: %s\n", *siteUrl, status)
-				//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
-				err := mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
-				if err != nil {
-					log.Errorf("Error sending email notification", err)
+				mailMessage := []byte("Subject: Site alert notification.\r\n" +
+					"\r\n" +
+					"This is an alert message for " + siteUrl +
+					".\nWebsite status is down with the following error: " + status +
+					".\nPlease take action immediately." + "\r\n")
+
+				if ok {
+					log.Infof("%s is up. Status: %s\n", siteUrl, status)
+				} else {
+					log.Warnf("%s is down. Status: %s\n", siteUrl, status)
+					//mailMessage := fmt.Sprintf("ALERT: The site" + *siteUrl + "is down!")
+					err := mailSender(*smtpHost, *smtpPort, *senderAccount, *senderPassword, recipientsList, mailMessage)
+					if err != nil {
+						log.Errorf("Error sending email notification", err)
+					}
+					log.Info("Notification e-mail sent.")
 				}
-				log.Info("Notification e-mail sent.")
 			}
 			time.Sleep(time.Duration(*intervalSecs) * time.Second)
 		}
 	}()
 
-	log.Infof("Check loop for %s started.", *siteUrl)
+	log.Infof("Webcheckd loop started for %s.\n", strings.Join(urlList, ", "))
 
 }

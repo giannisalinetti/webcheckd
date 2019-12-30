@@ -13,3 +13,5 @@ tag:
 push:
 	docker push $(REGISTRY)/$(NAMESPACE)/$(APP_NAME):latest
 
+clean:
+	rm -f webcheckd
